@@ -25,6 +25,14 @@ class EncryptionEnvelope(dict):
             _iv = self.decode64(_iv)
         return _iv
 
+    @property
+    def content_length(self):
+        return self.get('x-amz-unencrypted-content-length', None)
+
+    @content_length.setter
+    def content_length(self, data):
+        self['x-amz-unencrypted-content-length'] = str(len(data))
+
     @key.setter
     def key(self, key):
         self['x-amz-key'] = self.encode64(key)

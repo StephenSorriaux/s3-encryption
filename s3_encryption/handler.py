@@ -12,14 +12,15 @@ class EncryptionHandler(object):
         cipher.iv = crypto.aes_iv()
         cipher.key = crypto.aes_key()
         context['body'] = cipher.encrypt(context['raw_body'])
-        context['envelope'] = self.build_envelope(cipher)
+        context['envelope'] = self.build_envelope(cipher, context['raw_body'])
         return context
 
-    def build_envelope(self, cipher):
+    def build_envelope(self, cipher, data):
         self.envelope = EncryptionEnvelope(self.provider.encryption_materials)
         self.envelope.iv = cipher.iv
         key = self.provider.key_for(self.provider.encryption_materials)
         self.envelope.key = crypto.aes_encrypt(key, cipher.key)
+        self.envelope.content_length = data
         return self.envelope
 
 
