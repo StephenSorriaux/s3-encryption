@@ -37,10 +37,10 @@ class EncryptionEnvelope(dict):
         return json.dumps(self)
 
     def from_metadata(self, metadata):
-        self['x-amz-key'] = metadata.get('x-amz-key')
-        self['x-amz-iv'] = metadata.get('x-amz-iv')
-        self['x-amz-matdesc'] = metadata.get('x-amz-matdesc')
-        if not (self['x-amz-key'] and self['x-amz-iv'] and self['x-amz-matdesc']):
+        self['x-amz-key'] = metadata.get('x-amz-key', metadata.get('x-amz-key'.title()))
+        self['x-amz-iv'] = metadata.get('x-amz-iv', metadata.get('x-amz-iv'.title()))
+        self['x-amz-matdesc'] = metadata.get('x-amz-matdesc', metadata.get('x-amz-matdesc'.title()))
+        if not (self['x-amz-key'] is not None and self['x-amz-iv'] is not None and self['x-amz-matdesc'] is not None):
             raise IncompleteMetadataError('All metadata keys are required for decryption (x-amz-key, x-amz-iv, x-amz-matdesc).')
 
     @classmethod
