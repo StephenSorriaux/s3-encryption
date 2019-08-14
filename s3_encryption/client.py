@@ -38,7 +38,7 @@ class S3EncryptionClient(object):
         context = {'body': resp['Body'].read()}
         handler = DecryptionHandler(self.key_provider)
         context = handler.build_response_context(resp['Metadata'], context)
-        return context['raw_body']
+        return context['raw_body'].decode('utf-8')
 
     def extract_key_provider(self, **kwargs):
         if 'encryption_key' not in kwargs:
