@@ -17,13 +17,13 @@ Upload encrypted content in python using KMS to store your master key:
 ```python
 
 import boto3
-from s3_encryption.client import S3EncryptionClient
+from s3_encryption.client.sync_client import S3EncryptionSyncClient
 
 REGION = 'us-west-2'
 BUCKET = 'testing.stuff.bucket'
 s3_key = 'testing.txt'
 
-s3e = S3EncryptionClient(encryption_key=plaintext_key, region_name=REGION)
+s3e = S3EncryptionSyncClient(encryption_key=plaintext_key, region_name=REGION)
 s3e.put_object(Body='this is a test', Bucket=BUCKET, Key='testing.txt')
 s3e.client.put_object(Body=encoded_key, Bucket=BUCKET, Key=s3_key + '.key')
 ```
@@ -40,7 +40,7 @@ encoded_key = s3.get_object(Bucket=BUCKET, Key=s3_key + '.key')
 
 plaintext_key = decode_encryption_key(encoded_key)
 
-s3e = S3EncryptionClient(encryption_key=plaintext_key, region_name=REGION)
+s3e = S3EncryptionSyncClient(encryption_key=plaintext_key, region_name=REGION)
 print s3e.get_object(Bucket=BUCKET, Key=s3_key)
 >> 'this is a test'
 ```
@@ -67,27 +67,27 @@ puts body
 ```
 
 ## Providing a symetric master key to your app
-
+### Sync client
 See [this AWS documentation](https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingClientSideEncryption.html#client-side-encryption-client-side-master-key-intro) for more details.
 
 Your symetric key will be used to encrypt the data.
 
-Upload encrypted content in python using KMS to store your master key:
+Upload encrypted content in python using your master key:
 ```python
 
 import boto3
-from s3_encryption.client import S3EncryptionClient
+from s3_encryption.client.sync_client import S3EncryptionSyncClient
 
 REGION = 'us-west-2'
 BUCKET = 'testing.stuff.bucket'
 s3_key = 'testing.txt'
 plaintext_key = b'my-32-bytes-key'
 
-s3e = S3EncryptionClient(encryption_key=plaintext_key, region_name=REGION)
+s3e = S3EncryptionSyncClient(encryption_key=plaintext_key, region_name=REGION)
 s3e.put_object(Body='this is a test', Bucket=BUCKET, Key='testing.txt')
 ```
 
-Download encrypted content in python using KMs to store your master key:
+Download encrypted content in python using your master key:
 ```python
 
 REGION = 'us-west-2'
@@ -96,9 +96,7 @@ s3_key = 'testing.txt'
 
 plaintext_key = b'my-32-bytes-key'
 
-s3 = boto3.client('s3', region_name=REGION)
-
-s3e = S3EncryptionClient(encryption_key=plaintext_key, region_name=REGION)
+s3e = S3EncryptionSyncClient(encryption_key=plaintext_key, region_name=REGION)
 print s3e.get_object(Bucket=BUCKET, Key=s3_key)
 >> 'this is a test'
 ```
