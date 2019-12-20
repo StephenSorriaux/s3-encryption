@@ -9,7 +9,8 @@ from s3_encryption.handler import EncryptionHandler, DecryptionHandler
 
 class S3EncryptionSyncClient(S3EncryptionAbstractClient):
 
-    def __init__(self, encryption_key=None, **kwargs):
+    def __init__(self, encryption_key=None, encryption_mode=None, **kwargs):
+
         self.client = kwargs.get('client', None)
         if self.client is None:
             self.client = boto3.client(
@@ -22,7 +23,8 @@ class S3EncryptionSyncClient(S3EncryptionAbstractClient):
                 's3',
                 region_name=kwargs.get('region_name', None)
             )
-        super().__init__(encryption_key=encryption_key, **kwargs)
+        super().__init__(encryption_key=encryption_key,
+                         encryption_mode=encryption_mode, **kwargs)
 
     def put_object(self, Bucket=None, Key=None, Body=None, ACL=None, **kwargs):
         context = {
@@ -40,6 +42,9 @@ class S3EncryptionSyncClient(S3EncryptionAbstractClient):
         if ACL is not None:
             kwargs['ACL'] = ACL
         self.client.put_object(**kwargs)
+
+    def get_handler(self):
+        pass
 
     def multipart_upload(self, Bucket=None, Key=None, Body=None, ACL=None,
                          part_size=None, **kwargs):
@@ -91,9 +96,10 @@ class S3EncryptionSyncClient(S3EncryptionAbstractClient):
 
         return result
 
-    def get_object(self, Bucket=None, Key=None):
+    def get_object(self, Bucket=None, Key=None, handler=None):
         resp = self.client.get_object(Bucket=Bucket, Key=Key)
-        context = {'body': resp['Body'].read()}
-        handler = DecryptionHandler(self.key_provider)
-        context = handler.build_response_context(resp['Metadata'], context)
-        return context['raw_body']
+        data_enc =  resp['Body'].read()
+        if handler is None:
+            handler = DecryptionHandler(self.key_provider)
+        data = handler.build_from_metadata_and_decrypt(resp['Metadata'], data_enc)
+        return data
