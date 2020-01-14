@@ -41,9 +41,26 @@ class S3EncryptionASyncClient(S3EncryptionAbstractClient):
         super().__init__(encryption_key=encryption_key,
                          encryption_mode=encryption_mode, **kwargs)
 
-    async def put_object(self, Bucket=None, Key=None, Body=None, ACL=None,
-                         **kwargs):
-        raise NotImplementedError('Use multipart_upload() instead')
+    async def put_object(self, bucket, key, data, handler, metadata=None, **kwargs):
+
+        enc_func = functools.partial(handler.encrypt, data, padding=True)
+
+        enc = await self.loop.run_in_executor(None, enc_func)
+
+        body_enc = io.BytesIO(enc.full_data)
+
+        if metadata is None:
+            metadata = {}
+
+        await self.client.upload_fileobj(
+            body_enc,
+            Bucket=bucket,
+            Key=key,
+            ExtraArgs={'Metadata': metadata}
+        )
+
+        logger.info('Uploaded %s bytes to object %s (bucket: %s)', len(data), key, bucket)
+
 
     async def multipart_upload(self, Bucket=None, Key=None, Body=None,
                                ACL=None, config=None, callback=None, **kwargs):
